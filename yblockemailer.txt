@@ -1,0 +1,79 @@
+var EMAIL_TEMPLATE_DOC_URL = 'https://docs.google.com/document/d/1KMfRuKbOdUUbfNQlw2pKHGkhyjj3OYh2vUWMX5pepV4/edit?usp=sharing';
+var EMAIL_SUBJECT = 'Yblockchain - Here is your lifetime access to our Resources';
+
+
+function installTrigger() {
+  ScriptApp.newTrigger('onFormSubmit')
+      .forSpreadsheet(SpreadsheetApp.getActive())
+      .onFormSubmit()
+      .create();
+}
+
+function onFormSubmit(e) {
+  var responses = e.namedValues;  
+  var timestamp = responses.Timestamp[0];
+  var email = responses.Email[0].trim();
+  var name = responses.Name[0].trim();
+
+ 
+  // Send Email upon Form Response
+  var status = '';
+  if (status != 'Sent') {
+    MailApp.sendEmail({
+      to: email,
+      subject: getSubject(name),
+      htmlBody: getMessage(name),
+      name: 'Sai from YBlockchain',
+      replyTo: 'team@yblockcha.in'
+    });
+    status = 'Sent';
+  }
+  else {
+    status = 'Not Sent';
+  }
+
+  // Append the status on the spreadsheet to the responses' row.
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var row = sheet.getActiveRange().getRow();
+  var column = e.values.length + 1;
+  sheet.getRange(row, column).setValue(status);
+  Logger.log("status=" + status + "; responses=" + JSON.stringify(responses));
+}
+
+//function createEmailBody(name) {
+//  
+//  var docId = DocumentApp.openByUrl(EMAIL_TEMPLATE_DOC_URL).getId();
+//  var emailBody = docToHtml(docId);
+//  emailBody = emailBody.replace(/{{NAME}}/g, name);
+//  return emailBody;
+//}
+
+function getMessage(name) {
+  var htmlOutput = HtmlService.createHtmlOutputFromFile('yblock-email'); 
+  var message = htmlOutput.getContent();
+  message = message.replace(/{{NAME}}/g, name);
+  
+  return message;
+}
+
+function getSubject(name){
+  var email_sub = "Hey " + name + ", Here is your lifetime access to Yblockchain Resources";
+  return email_sub;
+}
+
+//function docToHtml(docId) {
+//
+//  // Downloads a Google Doc as an HTML string.
+//  var url = "https://docs.google.com/feeds/download/documents/export/Export?id=" +
+//            docId + "&exportFormat=html";
+//  var param = {
+//    method: "get",
+//    headers: {"Authorization": "Bearer " + ScriptApp.getOAuthToken()},
+//    muteHttpExceptions: true,
+//  };
+//  return UrlFetchApp.fetch(url, param).getContentText();
+//}
+
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+};
